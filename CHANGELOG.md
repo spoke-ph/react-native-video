@@ -1,5 +1,8 @@
 ## Changelog
 
+### Unreleased
+* Dispatch setting player source in global queue instead of main queue
+
 ### Version 4.3.0
 * Fix iOS video not displaying after switching source [#1395](https://github.com/react-native-community/react-native-video/pull/1395)
 * Add the filterEnabled flag, fixes iOS video start time regression [#1384](https://github.com/react-native-community/react-native-video/pull/1384)

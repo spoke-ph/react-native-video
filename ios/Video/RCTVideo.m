@@ -335,7 +335,7 @@ static int const RCTVideoUnset = -1;
   [self removePlayerTimeObserver];
   [self removePlayerItemObservers];
 
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) 0), dispatch_get_main_queue(), ^{
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) 0), dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
 
     // perform on next run loop, otherwise other passed react-props may not be set
     [self playerItemForSource:source withCallback:^(AVPlayerItem * playerItem) {
