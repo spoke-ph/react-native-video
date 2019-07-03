@@ -2,6 +2,7 @@
 
 ### Unreleased
 * Fix UI freezing when loading source by dispatching the loading in the global queue instead of main queue
+* Update build.gradle for React Native 0.59+ compatibility
 
 ### Version 4.2.0
 * Don't initialize filters on iOS unless a filter is set. This was causing a startup performance regression [#1360](https://github.com/react-native-community/react-native-video/pull/1360)
