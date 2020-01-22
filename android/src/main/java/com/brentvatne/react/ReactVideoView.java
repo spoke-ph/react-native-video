@@ -3,13 +3,16 @@ package com.brentvatne.react;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Matrix;
+import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.media.TimedMetaData;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.WindowManager;
@@ -143,6 +146,8 @@ public class ReactVideoView extends ScalableVideoView implements
     private boolean isCompleted = false;
     private boolean mUseNativeControls = false;
 
+    private PowerManager.WakeLock mProximityWakeLock; // Proximity sensor wakelock
+
     public ReactVideoView(ThemedReactContext themedReactContext) {
         super(themedReactContext);
 
@@ -169,6 +174,9 @@ public class ReactVideoView extends ScalableVideoView implements
                 }
             }
         };
+
+        PowerManager powerManager = (PowerManager) getContext().getSystemService(Context.POWER_SERVICE);
+        mProximityWakeLock = powerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, ReactVideoViewManager.REACT_CLASS + ":proximity");
     }
 
     @Override
@@ -218,6 +226,11 @@ public class ReactVideoView extends ScalableVideoView implements
             mMediaPlayer.setOnSeekCompleteListener(this);
             mMediaPlayer.setOnCompletionListener(this);
             mMediaPlayer.setOnInfoListener(this);
+
+            mMediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .build());
+
             if (Build.VERSION.SDK_INT >= 23) {
                 mMediaPlayer.setOnTimedMetaDataAvailableListener(new TimedMetaDataAvailableListener());
             }
@@ -410,6 +423,7 @@ public class ReactVideoView extends ScalableVideoView implements
                 mProgressUpdateHandler.post(mProgressUpdateRunnable);
             }
         }
+        setProximitySensorEnabled(!mpaused);
         setKeepScreenOn(!mPaused);
     }
 
@@ -586,6 +600,7 @@ public class ReactVideoView extends ScalableVideoView implements
         WritableMap event = Arguments.createMap();
         event.putMap(EVENT_PROP_ERROR, error);
         mEventEmitter.receiveEvent(getId(), Events.EVENT_ERROR.toString(), event);
+        setProximitySensorEnabled(false);
         return true;
     }
 
@@ -663,6 +678,7 @@ public class ReactVideoView extends ScalableVideoView implements
         mEventEmitter.receiveEvent(getId(), Events.EVENT_END.toString(), null);
         if (!mRepeat) {
             setKeepScreenOn(false);
+            setProximitySensorEnabled(false);
         }
     }
         
@@ -724,6 +740,7 @@ public class ReactVideoView extends ScalableVideoView implements
              */
             mBackgroundPaused = true;
             mMediaPlayer.pause();
+            setProximitySensorEnabled(false);
         }
     }
 
@@ -765,7 +782,7 @@ public class ReactVideoView extends ScalableVideoView implements
 
         return result;
     }
-        
+
     // Select track (so we can use it to listen to timed meta data updates)
     private void selectTimedMetadataTrack(MediaPlayer mp) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -780,5 +797,15 @@ public class ReactVideoView extends ScalableVideoView implements
                 }
             }
         } catch (Exception e) {}
+    }
+
+    private void setProximitySensorEnabled(final boolean enable) {
+        final boolean isCurrentlyEnabled = mProximityWakeLock.isHeld();
+        if (enable && !isCurrentlyEnabled) {
+            mProximityWakeLock.acquire();
+        }
+        if (!enable && isCurrentlyEnabled) {
+            mProximityWakeLock.release(PowerManager.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY);
+        }
     }
 }

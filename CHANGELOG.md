@@ -2,6 +2,8 @@
 ### Unreleased
 * Fix UI freezing when loading source by dispatching the loading in the global queue instead of main queue
 * Update build.gradle for React Native 0.59+ compatibility
+* Play audio through earpiece by default
+* Turn on proximity sensor when playing audio
 
 ### Version 5.0.2
 * Fix crash when RCTVideo's superclass doesn't observe the keyPath 'frame' (iOS) [#1720](https://github.com/react-native-community/react-native-video/pull/1720)

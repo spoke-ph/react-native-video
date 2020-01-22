@@ -225,6 +225,7 @@ static int const RCTVideoUnset = -1;
     [_playerLayer setPlayer:nil];
     [_playerViewController setPlayer:nil];
   }
+    [self setProximitySensorEnabled:NO];
 }
 
 - (void)applicationWillEnterForeground:(NSNotification *)notification
@@ -666,6 +667,7 @@ static int const RCTVideoUnset = -1;
         self.onVideoError(@{@"error": @{@"code": [NSNumber numberWithInteger: _playerItem.error.code],
                                         @"domain": _playerItem.error.domain},
                             @"target": self.reactTag});
+          [self setProximitySensorEnabled:NO];
       }
     } else if ([keyPath isEqualToString:playbackBufferEmptyKeyPath]) {
       _playerBufferEmpty = YES;
@@ -779,6 +781,7 @@ static int const RCTVideoUnset = -1;
     [self applyModifiers];
   } else {
     [self removePlayerTimeObserver];
+      [self setProximitySensorEnabled:NO];
   }
 }
 
@@ -851,6 +854,19 @@ static int const RCTVideoUnset = -1;
 }
 #endif
 
+- (void)configureAVAudioSession
+{
+  AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+  [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
+  [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+}
+
+- (void)setProximitySensorEnabled:(BOOL)enabled
+{
+  UIDevice* device = [UIDevice currentDevice];
+  device.proximityMonitoringEnabled = enabled;
+}
+
 - (void)setIgnoreSilentSwitch:(NSString *)ignoreSilentSwitch
 {
   _ignoreSilentSwitch = ignoreSilentSwitch;
@@ -863,14 +879,11 @@ static int const RCTVideoUnset = -1;
     [_player pause];
     [_player setRate:0.0];
   } else {
-    if([_ignoreSilentSwitch isEqualToString:@"ignore"]) {
-      [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
-    } else if([_ignoreSilentSwitch isEqualToString:@"obey"]) {
-      [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryAmbient error:nil];
-    }
+    [self configureAVAudioSession];
     [_player play];
     [_player setRate:_rate];
   }
+  [self setProximitySensorEnabled:!paused];
   
   _paused = paused;
 }
