@@ -423,7 +423,7 @@ public class ReactVideoView extends ScalableVideoView implements
                 mProgressUpdateHandler.post(mProgressUpdateRunnable);
             }
         }
-        setProximitySensorEnabled(!paused);
+        setProximitySensorEnabled(!mpaused);
         setKeepScreenOn(!mPaused);
     }
 
