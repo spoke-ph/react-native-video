@@ -857,7 +857,7 @@ static int const RCTVideoUnset = -1;
 - (void)configureAVAudioSession
 {
   AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-  [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
+  [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
   [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
 }
 
